@@ -4,6 +4,7 @@ import com.netstudy.base.model.PageParams;
 import com.netstudy.base.model.PageResult;
 import com.netstudy.content.model.dto.AddCourseDto;
 import com.netstudy.content.model.dto.CourseBaseInfoDto;
+import com.netstudy.content.model.dto.EditCourseDto;
 import com.netstudy.content.model.dto.QueryCourseParamsDto;
 import com.netstudy.content.model.po.CourseBase;
 
@@ -28,5 +29,22 @@ public interface CourseBaseInfoService {
      * @return 新增课程结果
      */
     CourseBaseInfoDto createCourseBase(Long companyId, AddCourseDto addCourseDto);
+
+    /**
+     * 根据课程id查询课程信息
+     *
+     * @param courseId 课程id
+     * @return 课程详细信息
+     */
+    CourseBaseInfoDto getCourseBaseInfo(Long courseId);
+
+    /**
+     * 修改课程，基于机构ID
+     *
+     * @param companyId     机构id
+     * @param editCourseDto 修改课程条件
+     * @return 修改后课程信息
+     */
+    CourseBaseInfoDto updateCourseBase(Long companyId, EditCourseDto editCourseDto);
 
 }

@@ -10,6 +10,7 @@ import com.netstudy.content.mapper.CourseCategoryMapper;
 import com.netstudy.content.mapper.CourseMarketMapper;
 import com.netstudy.content.model.dto.AddCourseDto;
 import com.netstudy.content.model.dto.CourseBaseInfoDto;
+import com.netstudy.content.model.dto.EditCourseDto;
 import com.netstudy.content.model.dto.QueryCourseParamsDto;
 import com.netstudy.content.model.po.CourseBase;
 import com.netstudy.content.model.po.CourseCategory;
@@ -97,7 +98,7 @@ public class CourseBaseInfoServiceImpl implements CourseBaseInfoService {
     }
 
     //查询课程信息
-    private CourseBaseInfoDto getCourseBaseInfo(long courseId) {
+    public CourseBaseInfoDto getCourseBaseInfo(Long courseId) {
         //从课程基本信息表查询
         CourseBase courseBase = courseBaseMapper.selectById(courseId);
         if (courseBase == null) {
@@ -122,6 +123,39 @@ public class CourseBaseInfoServiceImpl implements CourseBaseInfoService {
         courseBaseInfoDto.setStName(stName);
 
         return courseBaseInfoDto;
+    }
+
+    @Override
+    public CourseBaseInfoDto updateCourseBase(Long companyId, EditCourseDto editCourseDto) {
+        //根据传进来的表单，检验数据库是否有该课程，有才能修改
+        Long courseId = editCourseDto.getId();
+        //查询
+        CourseBase courseBase = courseBaseMapper.selectById(courseId);
+        //判断
+        if (courseBase == null) {
+            NetStudyException.cast("课程不存在");
+        }
+        //数据合法性校验
+        //非参数，而是业务逻辑的校验写在service里
+        //本机构只可修改本机构的课程
+        if (!companyId.equals(courseBase.getCompanyId())) {
+            NetStudyException.cast("只能修改本机构的课程");
+        }
+        //封装数据,将页面传进来的表单数据覆盖掉数据库查询出来的旧数据
+        BeanUtils.copyProperties(editCourseDto, courseBase);
+        //修改时间
+        courseBase.setChangeDate(LocalDateTime.now());
+        //存储数据库
+        int i = courseBaseMapper.updateById(courseBase);
+        if (i <= 0) {
+            NetStudyException.cast("修改课程失败");
+        }
+        //更新营销信息
+        CourseMarket courseMarket = new CourseMarket();
+        BeanUtils.copyProperties(editCourseDto, courseMarket);
+        saveCourseMarket(courseMarket);
+        //查询课程信息
+        return getCourseBaseInfo(courseId);
     }
 
     //保存营销信息的单独方法，存在数据则更新，没有就添加
