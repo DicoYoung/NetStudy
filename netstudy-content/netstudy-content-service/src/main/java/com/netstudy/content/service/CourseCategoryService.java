@@ -11,5 +11,5 @@ import java.util.List;
  * @date 2024/4/12 14:31
  **/
 public interface CourseCategoryService {
-    public List<CourseCategoryTreeDto> queryTreeNodes(String id);
+    List<CourseCategoryTreeDto> queryTreeNodes(String id);
 }

@@ -52,11 +52,10 @@
             <result column="two_courseId" property="courseId"/>
             <result column="two_coursePubId" property="coursePubId"/>
             <!--一对一映射-->
-            <association property="teachplanMedia" javaType="com.xuecheng.content.model.po.TeachplanMedia">
+            <association property="teachplanMedia" javaType="com.netstudy.content.model.po.TeachplanMedia">
                 <id column="teachplanMeidaId" property="id"/>
                 <result column="mediaFilename" property="mediaFilename"/>
                 <result column="mediaId" property="mediaId"/>
-
             </association>
         </collection>
     </resultMap>

@@ -10,7 +10,7 @@ import lombok.Data;
  * @date 2024/4/15 14:52
  **/
 @Data
-public class EditCourseDto {
+public class EditCourseDto extends AddCourseDto {
     @ApiModelProperty(value = "课程id", required = true)
     private Long id;
 }
