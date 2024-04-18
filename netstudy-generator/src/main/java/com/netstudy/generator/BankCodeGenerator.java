@@ -36,7 +36,7 @@ public class BankCodeGenerator {
 		// 全局配置
 		GlobalConfig gc = new GlobalConfig();
 		gc.setFileOverride(true);
-		gc.setOutputDir(System.getProperty("user.dir") + "/xuecheng-plus-generator/src/main/java");
+		gc.setOutputDir(System.getProperty("user.dir") + "/netstudy-plus-generator/src/main/java");
 		gc.setAuthor("itcast");
 		gc.setOpen(false);
 		gc.setSwagger2(false);
@@ -62,7 +62,7 @@ public class BankCodeGenerator {
 
 		// 包配置
 		PackageConfig pc = new PackageConfig();
-		pc.setParent("com.xuecheng.rocketmq");
+		pc.setParent("com.netstudy.rocketmq");
 
 		pc.setServiceImpl("service.impl");
 		pc.setXml("mapper");

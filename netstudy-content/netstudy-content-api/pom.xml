@@ -8,12 +8,23 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
     <artifactId>netstudy-content-api</artifactId>
+    <name>netstudy-content-api</name>
     <dependencies>
         <dependency>
             <groupId>com.netstudy</groupId>
             <artifactId>netstudy-content-service</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
+        <!--nacos-->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+        </dependency>
+
         <!--cloud的基础环境包-->
         <dependency>
             <groupId>org.springframework.cloud</groupId>

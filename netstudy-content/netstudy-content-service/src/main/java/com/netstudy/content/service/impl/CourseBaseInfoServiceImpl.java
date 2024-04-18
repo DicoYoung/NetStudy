@@ -5,16 +5,12 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.netstudy.base.exception.NetStudyException;
 import com.netstudy.base.model.PageParams;
 import com.netstudy.base.model.PageResult;
-import com.netstudy.content.mapper.CourseBaseMapper;
-import com.netstudy.content.mapper.CourseCategoryMapper;
-import com.netstudy.content.mapper.CourseMarketMapper;
+import com.netstudy.content.mapper.*;
 import com.netstudy.content.model.dto.AddCourseDto;
 import com.netstudy.content.model.dto.CourseBaseInfoDto;
 import com.netstudy.content.model.dto.EditCourseDto;
 import com.netstudy.content.model.dto.QueryCourseParamsDto;
-import com.netstudy.content.model.po.CourseBase;
-import com.netstudy.content.model.po.CourseCategory;
-import com.netstudy.content.model.po.CourseMarket;
+import com.netstudy.content.model.po.*;
 import com.netstudy.content.service.CourseBaseInfoService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -43,6 +39,12 @@ public class CourseBaseInfoServiceImpl implements CourseBaseInfoService {
 
     @Autowired
     CourseCategoryMapper courseCategoryMapper;
+
+    @Autowired
+    TeachplanMapper teachplanMapper;
+
+    @Autowired
+    CourseTeacherMapper courseTeacherMapper;
 
     @Override
     public PageResult<CourseBase> queryCourseBaseList(PageParams pageParams, QueryCourseParamsDto courseParamsDto) {
@@ -158,8 +160,27 @@ public class CourseBaseInfoServiceImpl implements CourseBaseInfoService {
         return getCourseBaseInfo(courseId);
     }
 
-    //保存营销信息的单独方法，存在数据则更新，没有就添加
+    @Override
+    public void deleteCourseBase(Long companyId, Long courseId) {
+        CourseBase courseBase = courseBaseMapper.selectById(courseId);
+        if (!companyId.equals(courseBase.getCompanyId())) {
+            NetStudyException.cast("不允许更改非本机构的课程");
+        }
+        // 删除课程教师信息
+        LambdaQueryWrapper<CourseTeacher> teacherLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        teacherLambdaQueryWrapper.eq(CourseTeacher::getCourseId, courseId);
+        courseTeacherMapper.delete(teacherLambdaQueryWrapper);
+        // 删除课程计划
+        LambdaQueryWrapper<Teachplan> teachplanLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        teachplanLambdaQueryWrapper.eq(Teachplan::getCourseId, courseId);
+        teachplanMapper.delete(teachplanLambdaQueryWrapper);
+        // 删除营销信息
+        courseMarketMapper.deleteById(courseId);
+        // 删除课程基本信息
+        courseBaseMapper.deleteById(courseId);
+    }
 
+    //保存营销信息的单独方法，存在数据则更新，没有就添加
     private int saveCourseMarket(CourseMarket courseMarket) {
         //参数合法性校验
         String charge = courseMarket.getCharge();
@@ -188,6 +209,4 @@ public class CourseBaseInfoServiceImpl implements CourseBaseInfoService {
             return courseMarketMapper.updateById(tempCourseMarket);
         }
     }
-
-
 }
