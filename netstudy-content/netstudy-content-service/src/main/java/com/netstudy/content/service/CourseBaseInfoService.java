@@ -47,4 +47,11 @@ public interface CourseBaseInfoService {
      */
     CourseBaseInfoDto updateCourseBase(Long companyId, EditCourseDto editCourseDto);
 
+    /**
+     * 删除课程
+     *
+     * @param courseId 课程ID
+     */
+    void deleteCourseBase(Long companyId, Long courseId);
+
 }
