@@ -2,10 +2,8 @@ package com.netstudy.media;
 
 import com.j256.simplemagic.ContentInfo;
 import com.j256.simplemagic.ContentInfoUtil;
-import io.minio.GetObjectArgs;
-import io.minio.MinioClient;
-import io.minio.RemoveObjectArgs;
-import io.minio.UploadObjectArgs;
+import io.minio.*;
+import io.minio.errors.*;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
@@ -15,6 +13,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FilterInputStream;
 import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Dico
@@ -85,5 +89,58 @@ public class MinioTest {
         } else {
             System.out.println("download failed");
         }
+    }
+
+    //分块文件上传
+    @Test
+    public void testUploadChunk() throws IOException, ServerException, InsufficientDataException, ErrorResponseException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+        for (int i = 0; i < 3; i++) {
+            UploadObjectArgs uploadObjectArgs = UploadObjectArgs.builder()
+                    .bucket("mediafiles")//桶
+                    .filename("E:\\JavaCode\\netstudy_tool\\chunk\\" + i)//本地文件
+                    .object("chunk/" + i)//子目录
+                    .build();
+            //上传文件
+            minioClient.uploadObject(uploadObjectArgs);
+            System.out.println("chunk " + i + " upload success");
+        }
+    }
+
+    //分块文件调用minio接口合并
+    @Test
+    public void testMerge() throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+        //循环获取分块文件
+//        List<ComposeSource> sources = new ArrayList<>();
+//        for (int i = 0; i < 14; i++) {
+//            ComposeSource composeSource = ComposeSource.builder()
+//                    .bucket("mediafiles")
+//                    .object("chunk/" + i)
+//                    .build();
+//            sources.add(composeSource);
+//        }
+
+        //流式编程
+        List<ComposeSource> composeSources = Stream.iterate(0, i -> ++i)
+                .limit(3)
+                //map映射的是minio对应的分区文件夹
+                .map(i -> ComposeSource.builder()
+                        .bucket("mediafiles")
+                        .object("chunk/" + i)
+                        .build())
+                .collect(Collectors.toList());
+        //得到分块文件列表后
+        //合并分块文件
+        ComposeObjectArgs composeObjectArgs = ComposeObjectArgs.builder()
+                .bucket("mediafiles")
+                .object("merge/testMerge01.mp4")
+                .sources(composeSources)
+                .build();
+        minioClient.composeObject(composeObjectArgs);
+    }
+
+    //分块文件合并后清除
+    @Test
+    public void testClearChunk() {
+
     }
 }

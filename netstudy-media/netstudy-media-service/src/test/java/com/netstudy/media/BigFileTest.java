@@ -27,7 +27,7 @@ public class BigFileTest {
         //分块文件路径
         String chunkFilePath = "E:\\JavaCode\\netstudy_tool\\chunk\\";
         //分块文件大小
-        int chunkSize = 1024 * 1024 * 1;
+        int chunkSize = 1024 * 1024 * 5;
         //分块文件数量
         int chunkNum = (int) Math.ceil(source_file.length() * 1.0 / chunkSize);
         //使用流从源文件读数据，再向分块文件中写数据
@@ -48,6 +48,7 @@ public class BigFileTest {
                 }
             }
             raf_rw.close();
+            System.out.println("分区保存成功：" + i);
         }
         raf_r.close();
     }
