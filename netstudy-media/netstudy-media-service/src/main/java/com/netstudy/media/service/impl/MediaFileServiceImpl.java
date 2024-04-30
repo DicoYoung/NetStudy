@@ -110,7 +110,7 @@ public class MediaFileServiceImpl implements MediaFileService {
      * @param objectName    对象名
      * @return 成功与否
      */
-    private boolean addMediaFilesToMinIO(String localFilePath, String mimeType, String bucket, String objectName) {
+    public boolean addMediaFilesToMinIO(String localFilePath, String mimeType, String bucket, String objectName) {
         try {
             UploadObjectArgs uploadObjectArgs = UploadObjectArgs.builder()
                     .bucket(bucket)//桶

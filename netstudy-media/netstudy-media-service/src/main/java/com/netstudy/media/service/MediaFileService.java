@@ -100,4 +100,15 @@ public interface MediaFileService {
      * @return 下载后的文件
      */
     File downloadFileFromMinIO(String bucket, String objectName);
+
+    /**
+     * 将文件添加上传到Minio
+     *
+     * @param localFilePath 本地文件路径
+     * @param mimeType      文件mimetype
+     * @param bucket        桶的名称
+     * @param objectName    对象名称
+     * @return 是否成功
+     */
+    boolean addMediaFilesToMinIO(String localFilePath, String mimeType, String bucket, String objectName);
 }
