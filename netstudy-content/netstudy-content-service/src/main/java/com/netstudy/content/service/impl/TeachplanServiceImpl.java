@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.netstudy.base.exception.NetStudyException;
 import com.netstudy.content.mapper.TeachplanMapper;
 import com.netstudy.content.mapper.TeachplanMediaMapper;
+import com.netstudy.content.model.dto.BindTeachplanMediaDto;
 import com.netstudy.content.model.dto.SavaTeachplanDto;
 import com.netstudy.content.model.dto.TeachplanDto;
 import com.netstudy.content.model.po.Teachplan;
@@ -168,6 +169,33 @@ public class TeachplanServiceImpl implements TeachplanService {
                 exchangeOrderby(teachplan, tmp);
             }
         }
+    }
+
+    /**
+     * @param bindTeachplanMediaDto 绑定DTO
+     */
+    @Transactional
+    @Override
+    public void associationMedia(BindTeachplanMediaDto bindTeachplanMediaDto) {
+        //课程计划id
+        Long teachplanId = bindTeachplanMediaDto.getTeachplanId();
+        Teachplan teachplan = teachplanMapper.selectById(teachplanId);
+        if (teachplan == null) {
+            NetStudyException.cast("课程计划不存在");
+        }
+
+        //先删除原有记录,根据课程计划id删除它所绑定的媒资
+        int delete = teachplanMediaMapper.delete(new LambdaQueryWrapper<TeachplanMedia>().eq(TeachplanMedia::getTeachplanId, bindTeachplanMediaDto.getTeachplanId()));
+//        if (delete <= 0) {
+//            NetStudyException.cast("删除原纪录失败");
+//        }
+
+        //再添加新记录
+        TeachplanMedia teachplanMedia = new TeachplanMedia();
+        BeanUtils.copyProperties(bindTeachplanMediaDto, teachplanMedia);
+        teachplanMedia.setCourseId(teachplan.getCourseId());
+        teachplanMedia.setMediaFilename(bindTeachplanMediaDto.getFileName());
+        teachplanMediaMapper.insert(teachplanMedia);
     }
 
     private void exchangeOrderby(Teachplan teachplan, Teachplan tmp) {

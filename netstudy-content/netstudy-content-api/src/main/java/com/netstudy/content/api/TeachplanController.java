@@ -1,5 +1,6 @@
 package com.netstudy.content.api;
 
+import com.netstudy.content.model.dto.BindTeachplanMediaDto;
 import com.netstudy.content.model.dto.SavaTeachplanDto;
 import com.netstudy.content.model.dto.TeachplanDto;
 import com.netstudy.content.service.TeachplanService;
@@ -44,5 +45,11 @@ public class TeachplanController {
     @PostMapping("/teachplan/{moveType}/{teachplanId}")
     public void orderByTeachplan(@PathVariable String moveType, @PathVariable Long teachplanId) {
         teachplanService.orderByTeachplan(moveType, teachplanId);
+    }
+
+    @ApiOperation(value = "课程计划和媒资绑定")
+    @PostMapping("/teachplan/association/media")
+    public void associationMedia(@RequestBody BindTeachplanMediaDto bindTeachplanMediaDto) {
+        teachplanService.associationMedia(bindTeachplanMediaDto);
     }
 }

@@ -1,5 +1,6 @@
 package com.netstudy.content.service;
 
+import com.netstudy.content.model.dto.BindTeachplanMediaDto;
 import com.netstudy.content.model.dto.SavaTeachplanDto;
 import com.netstudy.content.model.dto.TeachplanDto;
 
@@ -41,4 +42,11 @@ public interface TeachplanService {
      * @param teachplanId 计划ID
      */
     void orderByTeachplan(String moveType, Long teachplanId);
+
+    /**
+     * 课程计划与媒资绑定
+     *
+     * @param bindTeachplanMediaDto 绑定DTO
+     */
+    void associationMedia(BindTeachplanMediaDto bindTeachplanMediaDto);
 }
