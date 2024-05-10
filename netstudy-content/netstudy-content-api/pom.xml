@@ -65,6 +65,12 @@
             <version>1.9.0.RELEASE</version>
         </dependency>
 
+        <!-- Spring Boot对结果视图freemarker集成-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-freemarker</artifactId>
+        </dependency>
+
     </dependencies>
 
 </project>
