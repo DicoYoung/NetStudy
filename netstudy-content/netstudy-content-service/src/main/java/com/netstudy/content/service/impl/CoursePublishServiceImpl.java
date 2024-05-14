@@ -16,6 +16,8 @@ import com.netstudy.content.model.po.CoursePublishPre;
 import com.netstudy.content.service.CourseBaseInfoService;
 import com.netstudy.content.service.CoursePublishService;
 import com.netstudy.content.service.TeachplanService;
+import com.netstudy.messagesdk.model.po.MqMessage;
+import com.netstudy.messagesdk.service.MqMessageService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -54,8 +56,8 @@ public class CoursePublishServiceImpl implements CoursePublishService {
     @Autowired
     CoursePublishMapper coursePublishMapper;
 
-//    @Autowired
-//    MqMessageService mqMessageService;
+    @Autowired
+    MqMessageService mqMessageService;
 //
 //    @Autowired
 //    MediaServiceClient mediaServiceClient;
@@ -131,9 +133,29 @@ public class CoursePublishServiceImpl implements CoursePublishService {
         courseBaseMapper.updateById(courseBase);
     }
 
+    @Transactional
     @Override
     public void publish(Long companyId, Long courseId) {
-
+        // 1. 约束校验
+        // 1.1 获取课程预发布表数据
+        CoursePublishPre coursePublishPre = coursePublishPreMapper.selectById(courseId);
+        if (coursePublishPre == null) {
+            NetStudyException.cast("请先提交课程审核，审核通过后方可发布");
+        }
+        // 1.2 课程审核通过后，方可发布
+        if (!"202004".equals(coursePublishPre.getStatus())) {
+            NetStudyException.cast("操作失败，课程审核通过后方可发布");
+        }
+        // 1.3 本机构只允许发布本机构的课程
+        if (!coursePublishPre.getCompanyId().equals(companyId)) {
+            NetStudyException.cast("操作失败，本机构只允许发布本机构的课程");
+        }
+        // 2. 向课程发布表插入数据
+        saveCoursePublish(courseId);
+        // 3. 向消息表插入数据
+        saveCoursePublishMessage(courseId);
+        // 4. 删除课程预发布表对应记录
+        coursePublishPreMapper.deleteById(courseId);
     }
 
     @Override
@@ -144,5 +166,44 @@ public class CoursePublishServiceImpl implements CoursePublishService {
     @Override
     public CoursePublish getCoursePublishCache(Long courseId) {
         return null;
+    }
+
+    /**
+     * 保存课程发布信息
+     *
+     * @param courseId 课程id
+     */
+    private void saveCoursePublish(Long courseId) {
+        CoursePublishPre coursePublishPre = coursePublishPreMapper.selectById(courseId);
+        if (coursePublishPre == null) {
+            NetStudyException.cast("课程预发布数据为空");
+        }
+        CoursePublish coursePublish = new CoursePublish();
+        BeanUtils.copyProperties(coursePublishPre, coursePublish);
+        // 设置发布状态为已发布
+        coursePublish.setStatus("203002");
+        CoursePublish coursePublishUpdate = coursePublishMapper.selectById(courseId);
+        // 有则更新，无则新增
+        if (coursePublishUpdate == null) {
+            coursePublishMapper.insert(coursePublish);
+        } else {
+            coursePublishMapper.updateById(coursePublish);
+        }
+        // 更新课程基本信息表的发布状态为已发布
+        CourseBase courseBase = courseBaseMapper.selectById(courseId);
+        courseBase.setAuditStatus("203002");
+        courseBaseMapper.updateById(courseBase);
+    }
+
+    /**
+     * 保存消息表
+     *
+     * @param courseId 课程id
+     */
+    private void saveCoursePublishMessage(Long courseId) {
+        MqMessage mqMessage = mqMessageService.addMessage("course_publish", String.valueOf(courseId), null, null);
+        if (mqMessage == null) {
+            NetStudyException.cast("添加消息记录失败");
+        }
     }
 }
