@@ -78,12 +78,12 @@ public class CoursePublishTask extends MessageProcessAbstract {
             return;
         }
         // 2. 生成静态页面
-//        File file = coursePublishService.generateCourseHtml(courseId);
-//        if (file == null) {
-//            NetStudyException.cast("课程静态化异常");
-//        }
-//        // 3. 将静态页面上传至MinIO
-//        coursePublishService.uploadCourseHtml(courseId, file);
+        File file = coursePublishService.generateCourseHtml(courseId);
+        if (file == null) {
+            NetStudyException.cast("课程静态化异常");
+        }
+        // 3. 将静态页面上传至MinIO
+        coursePublishService.uploadCourseHtml(courseId, file);
         // 4. 保存第一阶段状态
         mqMessageService.completedStageOne(id);
     }
@@ -107,9 +107,9 @@ public class CoursePublishTask extends MessageProcessAbstract {
             return;
         }
         // 4. 远程调用保存课程索引接口，将课程信息上传至ElasticSearch
-//        Boolean result = coursePublishService.saveCourseIndex(courseId);
-//        if (result) {
-//            mqMessageService.completedStageTwo(id);
-//        }
+        Boolean result = coursePublishService.saveCourseIndex(courseId);
+        if (result) {
+            mqMessageService.completedStageTwo(id);
+        }
     }
 }

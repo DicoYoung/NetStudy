@@ -2,6 +2,10 @@ package com.netstudy.content.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.netstudy.base.exception.NetStudyException;
+import com.netstudy.content.config.MultipartSupportConfig;
+import com.netstudy.content.feignclient.CourseIndex;
+import com.netstudy.content.feignclient.MediaServiceClient;
+import com.netstudy.content.feignclient.SearchServiceClient;
 import com.netstudy.content.mapper.CourseBaseMapper;
 import com.netstudy.content.mapper.CourseMarketMapper;
 import com.netstudy.content.mapper.CoursePublishMapper;
@@ -18,14 +22,24 @@ import com.netstudy.content.service.CoursePublishService;
 import com.netstudy.content.service.TeachplanService;
 import com.netstudy.messagesdk.model.po.MqMessage;
 import com.netstudy.messagesdk.service.MqMessageService;
+import freemarker.cache.ClassTemplateLoader;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -58,9 +72,12 @@ public class CoursePublishServiceImpl implements CoursePublishService {
 
     @Autowired
     MqMessageService mqMessageService;
-//
-//    @Autowired
-//    MediaServiceClient mediaServiceClient;
+
+    @Autowired
+    MediaServiceClient mediaServiceClient;
+
+    @Autowired
+    private SearchServiceClient searchServiceClient;
 //
 //    @Autowired
 //    RedisTemplate redisTemplate;
@@ -160,12 +177,75 @@ public class CoursePublishServiceImpl implements CoursePublishService {
 
     @Override
     public CoursePublish getCoursePublish(Long courseId) {
-        return null;
+        return coursePublishMapper.selectById(courseId);
     }
 
     @Override
     public CoursePublish getCoursePublishCache(Long courseId) {
         return null;
+    }
+
+    @Override
+    public File generateCourseHtml(Long courseId) {
+        File htmlFile = null;
+        try {
+            // 1. 创建一个Freemarker配置
+            Configuration configuration = new Configuration(Configuration.getVersion());
+            // 2. 告诉Freemarker在哪里可以找到模板文件
+//            String classPath = this.getClass().getResource("/").getPath();
+//            configuration.setDirectoryForTemplateLoading(new File(classPath + "/templates/"));
+            configuration.setTemplateLoader(new ClassTemplateLoader(this.getClass().getClassLoader(), "/templates"));
+            configuration.setDefaultEncoding("utf-8");
+            // 3. 创建一个模型数据，与模板文件中的数据模型保持一致，这里是CoursePreviewDto类型
+            CoursePreviewDto coursePreviewDto = this.getCoursePreviewInfo(courseId);
+            HashMap<String, Object> map = new HashMap<>();
+            map.put("model", coursePreviewDto);
+            // 4. 加载模板文件
+            Template template = configuration.getTemplate("course_template.ftl");
+            // 5. 将数据模型应用于模板
+            String content = FreeMarkerTemplateUtils.processTemplateIntoString(template, map);
+            // 5.1 将静态文件内容输出到文件中
+            InputStream inputStream = IOUtils.toInputStream(content, "utf-8");
+            htmlFile = File.createTempFile("coursePublish", ".html");
+            FileOutputStream fos = new FileOutputStream(htmlFile);
+            IOUtils.copy(inputStream, fos);
+        } catch (Exception e) {
+            log.debug("课程静态化失败：{},课程id:{}", e.getMessage(), courseId);
+            e.printStackTrace();
+        }
+        return htmlFile;
+    }
+
+    @Override
+    public void uploadCourseHtml(Long courseId, File file) {
+        try {
+            //将file转成MultipartFile
+            MultipartFile multipartFile = MultipartSupportConfig.getMultipartFile(file);
+            //远程调用得到返回值
+            String upload = mediaServiceClient.upload(multipartFile, "course/" + courseId + ".html");
+            if (upload == null) {
+                log.debug("远程调用走降级逻辑得到上传的结果为null,课程id:{}", courseId);
+                NetStudyException.cast("上传静态文件过程中存在异常");
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            NetStudyException.cast("上传静态文件过程中存在异常");
+        }
+    }
+
+    @Override
+    public Boolean saveCourseIndex(Long courseId) {
+        // 1. 取出课程发布信息
+        CoursePublish coursePublish = coursePublishMapper.selectById(courseId);
+        // 2. 拷贝至课程索引对象
+        CourseIndex courseIndex = new CourseIndex();
+        BeanUtils.copyProperties(coursePublish, courseIndex);
+        // 3. 远程调用搜索服务API，添加课程索引信息
+        Boolean result = searchServiceClient.add(courseIndex);
+        if (!result) {
+            NetStudyException.cast("添加索引失败");
+        }
+        return true;
     }
 
     /**

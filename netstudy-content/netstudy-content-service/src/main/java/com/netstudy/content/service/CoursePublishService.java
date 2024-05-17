@@ -3,6 +3,8 @@ package com.netstudy.content.service;
 import com.netstudy.content.model.dto.CoursePreviewDto;
 import com.netstudy.content.model.po.CoursePublish;
 
+import java.io.File;
+
 /**
  * @author Dico
  * @version 1.0
@@ -50,4 +52,27 @@ public interface CoursePublishService {
      * @return CoursePublish
      */
     CoursePublish getCoursePublishCache(Long courseId);
+
+    /**
+     * 课程静态化
+     *
+     * @param courseId 课程id
+     * @return File 静态化文件
+     */
+    File generateCourseHtml(Long courseId);
+
+    /**
+     * 上传课程静态化页面
+     *
+     * @param file 静态化文件
+     */
+    void uploadCourseHtml(Long courseId, File file);
+
+    /**
+     * 保存索引
+     *
+     * @param courseId 课程ID
+     * @return 成功与否的结果
+     */
+    Boolean saveCourseIndex(Long courseId);
 }
