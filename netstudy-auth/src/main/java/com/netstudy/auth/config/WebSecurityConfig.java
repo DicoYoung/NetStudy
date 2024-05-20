@@ -29,14 +29,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     DaoAuthenticationProviderCustom daoAuthenticationProviderCustom;
 
     //配置用户信息服务
-    @Bean
-    public UserDetailsService userDetailsService() {
-        //这里配置用户信息,这里暂时使用这种方式将用户存储在内存中
-        InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
-        manager.createUser(User.withUsername("zhangsan").password("123").authorities("p1").build());
-        manager.createUser(User.withUsername("lisi").password("456").authorities("p2").build());
-        return manager;
-    }
+//    @Bean
+//    public UserDetailsService userDetailsService() {
+//        //这里配置用户信息,这里暂时使用这种方式将用户存储在内存中
+//        InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
+//        manager.createUser(User.withUsername("zhangsan").password("123").authorities("p1").build());
+//        manager.createUser(User.withUsername("lisi").password("456").authorities("p2").build());
+//        return manager;
+//    }
 
     //使用自己定义DaoAuthenticationProviderCustom来代替框架的DaoAuthenticationProvider
     @Override
@@ -51,6 +51,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
+//        明文方式的密码
+//        return NoOpPasswordEncoder.getInstance();
+//        加密方式，非明文
         return new BCryptPasswordEncoder();
     }
 

@@ -21,6 +21,13 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author Dico
+ * @version 1.0
+ * @description 实现spring security需要自定义UserDetailService的接口实现类
+ * @date 2024/5/20
+ */
+
 @Service
 @Slf4j
 public class UserDetailsImpl implements UserDetailsService {
@@ -39,6 +46,7 @@ public class UserDetailsImpl implements UserDetailsService {
      */
     @Override
     public UserDetails loadUserByUsername(String s) throws UsernameNotFoundException {
+        //查询到用户不存在，返回null, spring security会自动抛出异常
         AuthParamsDto authParamsDto = null;
         try {
             authParamsDto = JSON.parseObject(s, AuthParamsDto.class);
@@ -75,7 +83,6 @@ public class UserDetailsImpl implements UserDetailsService {
         String password = user.getPassword();
         user.setPassword(null);
         String userJsonStr = JSON.toJSONString(user);
-        UserDetails userDetails = User.withUsername(userJsonStr).password(password).authorities(authorities).build();
-        return userDetails;
+        return User.withUsername(userJsonStr).password(password).authorities(authorities).build();
     }
 }

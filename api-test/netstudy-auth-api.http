@@ -1,3 +1,11 @@
-### 密码模式
+### 密码模式-用户是在内存的zhangsan-正常应该到数据库读取
 POST {{auth_host}}/auth/oauth/token?client_id=XcWebApp&client_secret=XcWebApp&grant_type=password&username=zhangsan&
     password=123
+
+### 2024/5/20/ 19:13
+### eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsibmV0c3R1ZHkiXSwidXNlcl9uYW1lIjoiemhhbmdzYW4iLCJzY29wZSI6WyJhbGwiXSwiZXhwIjoxNzE2MjEwNzYzLCJhdXRob3JpdGllcyI6WyJwMSJdLCJqdGkiOiJkOWI2ZDZkYy03ZjEzLTQ0ZTAtOGFiNC1jMzhkNDE1YmZmZWIiLCJjbGllbnRfaWQiOiJYY1dlYkFwcCJ9.6E_h-wJdban0kWarHb-1rERa-eOMtJ75qkhJba60Xn8
+
+
+
+
+
