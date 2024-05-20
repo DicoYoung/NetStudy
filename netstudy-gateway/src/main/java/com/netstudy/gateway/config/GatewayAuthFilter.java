@@ -28,7 +28,7 @@ import java.util.Set;
 /**
  * @author Dico
  * @version 1.0
- * @description 网关认证过虑器
+ * @description 网关认证过虑器-校验合法性以及过滤白名单（认证服务）
  * @date 2024/5/20 12:10
  */
 @Component
