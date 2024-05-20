@@ -1,6 +1,5 @@
 package com.netstudy.media.api;
 
-import com.netstudy.base.exception.NetStudyException;
 import com.netstudy.base.model.RestResponse;
 import com.netstudy.media.model.po.MediaFiles;
 import com.netstudy.media.service.MediaFileService;
