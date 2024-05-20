@@ -1,10 +1,7 @@
 package com.netstudy.content.model.dto;
 
 import com.netstudy.content.model.po.CourseBase;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-
-import java.math.BigDecimal;
 
 /**
  * @author Dico

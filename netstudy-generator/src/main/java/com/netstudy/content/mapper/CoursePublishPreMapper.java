@@ -2,7 +2,6 @@ package com.netstudy.content.mapper;
 
 import com.netstudy.content.model.po.CoursePublishPre;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import org.springframework.stereotype.Repository;
 
 /**
  * <p>

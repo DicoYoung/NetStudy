@@ -1,20 +1,13 @@
 package com.netstudy.content;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.netstudy.base.model.PageParams;
 import com.netstudy.base.model.PageResult;
-import com.netstudy.content.mapper.CourseBaseMapper;
 import com.netstudy.content.model.dto.QueryCourseParamsDto;
 import com.netstudy.content.model.po.CourseBase;
 import com.netstudy.content.service.CourseBaseInfoService;
-import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-
-import java.util.List;
 
 /**
  * @author Dico
