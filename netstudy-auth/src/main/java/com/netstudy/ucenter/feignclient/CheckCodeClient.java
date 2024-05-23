@@ -8,6 +8,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(value = "checkcode", fallbackFactory = CheckCodeClientFactory.class)
 @RequestMapping("/checkcode")
 public interface CheckCodeClient {
-    @PostMapping(value = "/checkcode/verify")
+    @PostMapping(value = "/verify")
     Boolean verify(@RequestParam("key") String key, @RequestParam("code") String code);
 }

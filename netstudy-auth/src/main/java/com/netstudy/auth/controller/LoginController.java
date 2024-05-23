@@ -4,6 +4,7 @@ import com.netstudy.ucenter.mapper.XcUserMapper;
 import com.netstudy.ucenter.model.po.XcUser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,7 +25,6 @@ public class LoginController {
 
     @RequestMapping("/login-success")
     public String loginSuccess() {
-
         return "登录成功";
     }
 
@@ -35,11 +35,13 @@ public class LoginController {
     }
 
     @RequestMapping("/r/r1")
+    @PreAuthorize("hasAnyAuthority('p1')")//拥有p1权限可以访问
     public String r1() {
         return "访问r1资源";
     }
 
     @RequestMapping("/r/r2")
+    @PreAuthorize("hasAnyAuthority('p2')")//拥有p2权限可以访问
     public String r2() {
         return "访问r2资源";
     }
