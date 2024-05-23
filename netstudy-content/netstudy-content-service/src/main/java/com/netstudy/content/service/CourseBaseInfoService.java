@@ -17,11 +17,12 @@ import com.netstudy.content.model.po.CourseBase;
 public interface CourseBaseInfoService {
 
     /**
+     * @param companyId       机构ID
      * @param pageParams      分页参数查询
      * @param courseParamsDto 查询条件
      * @return 查询结果
      */
-    PageResult<CourseBase> queryCourseBaseList(PageParams pageParams, QueryCourseParamsDto courseParamsDto);
+    PageResult<CourseBase> queryCourseBaseList(Long companyId, PageParams pageParams, QueryCourseParamsDto courseParamsDto);
 
     /**
      * @param companyId    机构ID

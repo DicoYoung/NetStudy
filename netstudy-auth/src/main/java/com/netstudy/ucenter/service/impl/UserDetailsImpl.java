@@ -81,7 +81,9 @@ public class UserDetailsImpl implements UserDetailsService {
         user.setPermissions(permissions);
         String[] authorities = permissions.toArray(new String[0]);
         String password = user.getPassword();
+        //保证密码不会被传输，还可以在user的password属性上加@JsonIgnore
         user.setPassword(null);
+        //将用户信息（多信息）转成JSON传输
         String userJsonStr = JSON.toJSONString(user);
         return User.withUsername(userJsonStr).password(password).authorities(authorities).build();
     }

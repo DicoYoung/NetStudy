@@ -2,13 +2,14 @@ package com.netstudy.ucenter.model.po;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ *
  * </p>
  *
  * @author itcast
@@ -23,6 +24,7 @@ public class XcUser implements Serializable {
 
     private String username;
 
+    //    @JsonIgnore
     private String password;
 
     private String salt;

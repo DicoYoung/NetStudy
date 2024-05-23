@@ -35,7 +35,7 @@ public class CourseBaseInfoServiceTests {
         pageParams.setPageSize(2L);
         //创建page分页参数对象，参数：当前页码，每页数量
 
-        PageResult<CourseBase> courseBasePageResult = courseBaseInfoService.queryCourseBaseList(pageParams, courseParamsDto);
+        PageResult<CourseBase> courseBasePageResult = courseBaseInfoService.queryCourseBaseList(1232141425L, pageParams, courseParamsDto);
         System.out.println(courseBasePageResult);
     }
 }

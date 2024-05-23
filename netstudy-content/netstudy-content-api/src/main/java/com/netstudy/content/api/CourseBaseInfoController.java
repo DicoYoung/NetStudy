@@ -9,8 +9,10 @@ import com.netstudy.content.model.dto.EditCourseDto;
 import com.netstudy.content.model.dto.QueryCourseParamsDto;
 import com.netstudy.content.model.po.CourseBase;
 import com.netstudy.content.service.CourseBaseInfoService;
+import com.netstudy.content.util.SecurityUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -31,22 +33,36 @@ public class CourseBaseInfoController {
     @PostMapping("/course/list")
     //json转换成对象加注解@RequestBody
     public PageResult<CourseBase> list(PageParams pageParams, @RequestBody(required = false) QueryCourseParamsDto queryCourseParamsDto) {
-        return courseBaseInfoService.queryCourseBaseList(pageParams, queryCourseParamsDto);
+//        return courseBaseInfoService.queryCourseBaseList(pageParams, queryCourseParamsDto);
+        SecurityUtil.XcUser user = SecurityUtil.getUser();
+        Long companyId = null;
+        if (StringUtils.isNotEmpty(user.getCompanyId())) {
+            companyId = Long.parseLong(user.getCompanyId());
+        }
+        return courseBaseInfoService.queryCourseBaseList(companyId, pageParams, queryCourseParamsDto);
     }
 
     @ApiOperation("新增课程")
     @PostMapping("/course")
     public CourseBaseInfoDto createCourseBase(@RequestBody @Validated(ValidationGroups.Insert.class) AddCourseDto addCourseDto) {
 
-        //获取到用户所属机构的id
-        Long companyId = 1232141425L;
-//        int i = 1/0;
+//        //获取到用户所属机构的id
+//        Long companyId = 1232141425L;
+////        int i = 1/0;
+//        return courseBaseInfoService.createCourseBase(companyId, addCourseDto);
+        SecurityUtil.XcUser user = SecurityUtil.getUser();
+        Long companyId = null;
+        if (StringUtils.isNotEmpty(user.getCompanyId())) {
+            companyId = Long.parseLong(user.getCompanyId());
+        }
         return courseBaseInfoService.createCourseBase(companyId, addCourseDto);
     }
 
     @ApiOperation("根据课程ID查询接口")
     @GetMapping("/course/{courseId}")
     public CourseBaseInfoDto getCourseBaseById(@PathVariable Long courseId) {
+        SecurityUtil.XcUser user = SecurityUtil.getUser();
+        System.out.println("当前用户身份为：" + user);
         return courseBaseInfoService.getCourseBaseInfo(courseId);
     }
 
@@ -54,7 +70,13 @@ public class CourseBaseInfoController {
     @PutMapping("/course")
     public CourseBaseInfoDto modifyCourseBase(@RequestBody @Validated(ValidationGroups.Update.class) EditCourseDto editCourseDto) {
         //获取用户机构id
-        Long companyId = 1232141425L;
+//        Long companyId = 1232141425L;
+//        return courseBaseInfoService.updateCourseBase(companyId, editCourseDto);
+        SecurityUtil.XcUser user = SecurityUtil.getUser();
+        Long companyId = null;
+        if (StringUtils.isNotEmpty(user.getCompanyId())) {
+            companyId = Long.parseLong(user.getCompanyId());
+        }
         return courseBaseInfoService.updateCourseBase(companyId, editCourseDto);
     }
 
@@ -62,7 +84,13 @@ public class CourseBaseInfoController {
     @DeleteMapping("/course/{courseId}")
     public void deleteCourseBase(@PathVariable Long courseId) {
         //获取用户机构ID
-        Long companyId = 1232141425L;
+//        Long companyId = 1232141425L;
+//        courseBaseInfoService.deleteCourseBase(companyId, courseId);
+        SecurityUtil.XcUser user = SecurityUtil.getUser();
+        Long companyId = null;
+        if (StringUtils.isNotEmpty(user.getCompanyId())) {
+            companyId = Long.parseLong(user.getCompanyId());
+        }
         courseBaseInfoService.deleteCourseBase(companyId, courseId);
     }
 }
