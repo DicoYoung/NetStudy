@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * @author Dico
  * @version 1.0
- * @description TODO
+ * @description 课程信息实现
  * @date 2024/4/8 14:41
  **/
 @Slf4j

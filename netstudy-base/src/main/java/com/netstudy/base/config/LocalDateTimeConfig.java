@@ -36,6 +36,7 @@ public class LocalDateTimeConfig {
     public LocalDateTimeDeserializer localDateTimeDeserializer() {
         return new LocalDateTimeDeserializer(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
+
     //long转string避免精度损失
     @Bean
     public ObjectMapper jacksonObjectMapper(Jackson2ObjectMapperBuilder builder) {

@@ -182,6 +182,7 @@ public class CoursePublishServiceImpl implements CoursePublishService {
 
     @Override
     public CoursePublish getCoursePublishCache(Long courseId) {
+
         return null;
     }
 

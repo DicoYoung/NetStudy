@@ -1,13 +1,15 @@
 package com.netstudy.auth.controller;
 
 import com.netstudy.ucenter.mapper.XcUserMapper;
+import com.netstudy.ucenter.model.dto.FindPswDto;
+import com.netstudy.ucenter.model.dto.RegisterDto;
 import com.netstudy.ucenter.model.po.XcUser;
+import com.netstudy.ucenter.service.VerifyService;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @author Dico
@@ -21,6 +23,9 @@ public class LoginController {
 
     @Autowired
     XcUserMapper userMapper;
+
+    @Autowired
+    VerifyService verifyService;
 
 
     @RequestMapping("/login-success")
@@ -46,5 +51,15 @@ public class LoginController {
         return "访问r2资源";
     }
 
+    @ApiOperation(value = "找回密码", tags = "找回密码")
+    @PostMapping("/findpassword")
+    public void findPassword(@RequestBody FindPswDto findPswDto) {
+        verifyService.findPassword(findPswDto);
+    }
 
+    @ApiOperation(value = "注册", tags = "注册")
+    @PostMapping("/register")
+    public void register(@RequestBody RegisterDto registerDto) {
+        verifyService.register(registerDto);
+    }
 }

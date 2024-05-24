@@ -6,7 +6,9 @@ import com.netstudy.content.model.dto.CoursePreviewDto;
 import com.netstudy.content.model.dto.TeachplanDto;
 import com.netstudy.content.model.po.CoursePublish;
 import com.netstudy.content.service.CoursePublishService;
+import com.netstudy.content.util.SecurityUtil;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -49,15 +51,23 @@ public class CoursePublishController {
     @ResponseBody
     @PostMapping("/courseaudit/commit/{courseId}")
     public void commitAudit(@PathVariable("courseId") Long courseId) {
-        Long companyId = 1232141425L;
+        SecurityUtil.XcUser user = SecurityUtil.getUser();
+        Long companyId = null;
+        if (StringUtils.isNotEmpty(user.getCompanyId())) {
+            companyId = Long.parseLong(user.getCompanyId());
+        }
         coursePublishService.commitAudit(companyId, courseId);
     }
 
     @ApiOperation("课程发布")
     @ResponseBody
     @PostMapping("/coursepublish/{courseId}")
-    public void coursepublish(@PathVariable("courseId") Long courseId) {
-        Long companyId = 1232141425L;
+    public void coursePublish(@PathVariable("courseId") Long courseId) {
+        SecurityUtil.XcUser user = SecurityUtil.getUser();
+        Long companyId = null;
+        if (StringUtils.isNotEmpty(user.getCompanyId())) {
+            companyId = Long.parseLong(user.getCompanyId());
+        }
         coursePublishService.publish(companyId, courseId);
     }
 
@@ -65,7 +75,7 @@ public class CoursePublishController {
     @ResponseBody
     @GetMapping("/r/coursepublish/{courseId}")
     public CoursePublish getCoursepublish(@PathVariable("courseId") Long courseId) {
-        //查询课程发布信息
+        //查询课程发布信息，内部方法，不需要登录
         return coursePublishService.getCoursePublish(courseId);
     }
 
