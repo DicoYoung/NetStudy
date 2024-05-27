@@ -5,7 +5,7 @@ import com.netstudy.learning.model.po.XcChooseCourse;
 
 /**
  * <p>
- *  Mapper 接口
+ * Mapper 接口
  * </p>
  *
  * @author itcast

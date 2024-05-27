@@ -4,6 +4,9 @@ POST {{checkcode_host}}/checkcode/pic
 ### 验证
 POST {{checkcode_host}}/checkcode/verify?key=checkcode:3fd02c39740348f4ac53ff0a5544f90b&code=JNBU
 
+### 验证
+POST 192.168.101.1:63030/orders/alipaytest
+
 
 
 

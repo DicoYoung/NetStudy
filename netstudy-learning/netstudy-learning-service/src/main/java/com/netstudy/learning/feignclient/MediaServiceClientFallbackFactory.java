@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 /**
  * @author Dico
  * @version 1.0
- * @description TODO
+ * @description 熔断
  * @date 2024/5/24 9:42
  */
 @Slf4j

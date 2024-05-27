@@ -29,10 +29,13 @@ import java.util.List;
 public class MyCourseTablesServiceImpl implements MyCourseTablesService {
     @Autowired
     MyCourseTablesService myCourseTablesService;
+
     @Autowired
     ContentServiceClient contentServiceClient;
+
     @Autowired
     XcChooseCourseMapper chooseCourseMapper;
+
     @Autowired
     XcCourseTablesMapper courseTablesMapper;
 

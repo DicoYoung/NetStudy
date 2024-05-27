@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 /**
  * @author Dico
  * @version 1.0
- * @description TODO
+ * @description 远程调用媒资管理服务
  * @date 2024/5/24 9:42
  */
 @FeignClient(value = "media-api", fallbackFactory = MediaServiceClientFallbackFactory.class)
