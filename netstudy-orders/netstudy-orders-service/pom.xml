@@ -64,6 +64,7 @@
             <artifactId>spring-boot-starter-log4j2</artifactId>
         </dependency>
 
+        <!-- 集成了rabbitmq，消息生产者，消费者是learning-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-amqp</artifactId>

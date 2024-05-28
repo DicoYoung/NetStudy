@@ -25,7 +25,6 @@ import java.util.List;
 
 @Slf4j
 @Service
-@Transactional
 public class MyCourseTablesServiceImpl implements MyCourseTablesService {
     @Autowired
     MyCourseTablesService myCourseTablesService;
@@ -201,6 +200,7 @@ public class MyCourseTablesServiceImpl implements MyCourseTablesService {
             int update = chooseCourseMapper.updateById(chooseCourse);
             if (update <= 0) {
                 log.error("更新选课记录失败：{}", chooseCourse);
+                NetStudyException.cast("更新选课记录失败");
             }
         }
         // 3. 向我的课程表添加记录

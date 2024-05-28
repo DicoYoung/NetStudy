@@ -68,7 +68,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-log4j2</artifactId>
         </dependency>
-
+        <!--集成了rabbitmq，消息消费者，生产者是order-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-amqp</artifactId>
@@ -87,6 +87,7 @@
             <groupId>com.xuxueli</groupId>
             <artifactId>xxl-job-core</artifactId>
         </dependency>
+
     </dependencies>
 
 </project>

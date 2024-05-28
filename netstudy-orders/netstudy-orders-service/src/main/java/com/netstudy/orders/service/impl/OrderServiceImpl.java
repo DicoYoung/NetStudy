@@ -42,6 +42,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @author Dico
+ * @version 1.0
+ * @description 订单相关接口
+ * @date 2024/5/27 17:53
+ */
 @Slf4j
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -53,6 +59,10 @@ public class OrderServiceImpl implements OrderService {
 
     @Value("${pay.alipay.ALIPAY_PUBLIC_KEY}")
     String ALIPAY_PUBLIC_KEY;
+
+    @Value("${pay.qrcodeurl}")
+    String qrcodeurl;
+
     @Autowired
     XcOrdersMapper xcOrdersMapper;
 
@@ -68,9 +78,10 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     RabbitTemplate rabbitTemplate;
 
-    @Value("${pay.qrcodeurl}")
-    String qrcodeurl;
+    @Autowired
+    OrderServiceImpl currentProxy;
 
+    @Transactional
     @Override
     public PayRecordDto createOrder(String userId, AddOrderDto addOrderDto) {
         // 1. 添加商品订单
@@ -91,6 +102,7 @@ public class OrderServiceImpl implements OrderService {
         return payRecordDto;
     }
 
+    @Transactional
     @Override
     public XcPayRecord getPayRecordByPayNo(String payNo) {
         return xcPayRecordMapper.selectOne(new LambdaQueryWrapper<XcPayRecord>().eq(XcPayRecord::getPayNo, payNo));
@@ -103,9 +115,14 @@ public class OrderServiceImpl implements OrderService {
         PayStatusDto payStatusDto = queryPayResultFromAlipay(payNo);
 
         // 2. 拿到支付结果，更新支付记录表和订单表的状态为 已支付
-        saveAlipayStatus(payStatusDto);
+        currentProxy.saveAlipayStatus(payStatusDto);
 
-        return null;
+        // 3. 返回最新的支付记录信息
+        XcPayRecord xcPayRecord = currentProxy.getPayRecordByPayNo(payNo);
+        PayRecordDto payRecordDto = new PayRecordDto();
+        BeanUtils.copyProperties(xcPayRecord, payRecordDto);
+
+        return payRecordDto;
     }
 
     /**
@@ -156,8 +173,9 @@ public class OrderServiceImpl implements OrderService {
     /**
      * 保存支付结果信息
      *
-     * @param payStatusDto 支付结果信息
+     * @param payStatusDto 支付结果信息，从支付宝查询到的
      */
+    @Transactional
     public void saveAlipayStatus(PayStatusDto payStatusDto) {
         // 1. 获取支付流水号
         String payNo = payStatusDto.getOut_trade_no();
@@ -208,7 +226,7 @@ public class OrderServiceImpl implements OrderService {
         String jsonMsg = JSON.toJSONString(mqMessage);
         // 2. 设消息的持久化方式为PERSISTENT，即消息会被持久化到磁盘上，确保即使在RabbitMQ服务器重启后也能够恢复消息。
         Message msgObj = MessageBuilder.withBody(jsonMsg.getBytes()).setDeliveryMode(MessageDeliveryMode.PERSISTENT).build();
-        // 3. 封装CorrelationData，
+        // 3. 封装CorrelationData，用于指定回调方法
         CorrelationData correlationData = new CorrelationData(mqMessage.getId().toString());
         correlationData.getFuture().addCallback(result -> {
             if (result.isAck()) {
@@ -232,11 +250,11 @@ public class OrderServiceImpl implements OrderService {
      *
      * @param userId      用户id
      * @param addOrderDto 选课信息
-     * @return
+     * @return XcOrders
      */
     @Transactional
     public XcOrders saveOrders(String userId, AddOrderDto addOrderDto) {
-        // 1. 幂等性判断
+        // 1. 幂等性判断，一个选课记录只能对应一个订单
         XcOrders order = getOrderByBusinessId(addOrderDto.getOutBusinessId());
         if (order != null) {
             return order;
@@ -247,7 +265,7 @@ public class OrderServiceImpl implements OrderService {
         order.setId(IdWorkerUtils.getInstance().nextId());
         order.setCreateDate(LocalDateTime.now());
         order.setUserId(userId);
-        order.setStatus("600001");
+        order.setStatus("600001");//未支付
         int insert = xcOrdersMapper.insert(order);
         if (insert <= 0) {
             NetStudyException.cast("插入订单记录失败");
@@ -258,6 +276,7 @@ public class OrderServiceImpl implements OrderService {
         List<XcOrdersGoods> xcOrdersGoodsList = JSON.parseArray(orderDetail, XcOrdersGoods.class);
         xcOrdersGoodsList.forEach(goods -> {
             goods.setOrderId(orderId);
+            //循环插入不好，需要用mybatis批量新增优化(saveBatch)
             int insert1 = xcOrdersGoodsMapper.insert(goods);
             if (insert1 <= 0) {
                 NetStudyException.cast("插入订单明细失败");
@@ -270,12 +289,14 @@ public class OrderServiceImpl implements OrderService {
      * 根据业务id查询订单
      *
      * @param businessId 业务id是选课记录表中的主键
-     * @return
+     * @return XcOrders
      */
+    @Transactional
     public XcOrders getOrderByBusinessId(String businessId) {
         return xcOrdersMapper.selectOne(new LambdaQueryWrapper<XcOrders>().eq(XcOrders::getOutBusinessId, businessId));
     }
 
+    @Transactional
     public XcPayRecord createPayRecord(XcOrders orders) {
         if (orders == null) {
             NetStudyException.cast("订单不存在");
@@ -290,7 +311,7 @@ public class OrderServiceImpl implements OrderService {
         payRecord.setTotalPrice(orders.getTotalPrice());
         payRecord.setCurrency("CNY");
         payRecord.setCreateDate(LocalDateTime.now());
-        payRecord.setStatus("601001");
+        payRecord.setStatus("601001");//未支付
         payRecord.setUserId(orders.getUserId());
         int insert = xcPayRecordMapper.insert(payRecord);
         if (insert <= 0) {

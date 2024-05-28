@@ -36,6 +36,11 @@ public interface MyCourseTablesService {
 
     XcChooseCourse addChargeCourse(String userId, CoursePublish coursePublish);
 
+    /***
+     * 保存选课成功状态
+     * @param chooseCourseId 选课ID
+     * @return 成功与否
+     */
     boolean saveChooseCourseStatus(String chooseCourseId);
 
     PageResult<XcCourseTables> myCourseTables(MyCourseTableParams params);

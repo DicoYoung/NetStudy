@@ -29,4 +29,7 @@ spring:
           - data-id: feign-${spring.profiles.active}.yaml
             group: netstudy-common
             refresh: true
+          - data-id: rabbitmq-${spring.profiles.active}.yaml
+            group: netstudy-common
+            refresh: true
 

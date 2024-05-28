@@ -42,6 +42,7 @@ import java.util.Map;
 public class OrderController {
     @Value("${pay.alipay.APP_ID}")
     String APP_ID;
+
     @Value("${pay.alipay.APP_PRIVATE_KEY}")
     String APP_PRIVATE_KEY;
 
@@ -76,7 +77,7 @@ public class OrderController {
         //获得初始化的AlipayClient
         AlipayTradeWapPayRequest alipayRequest = new AlipayTradeWapPayRequest();//创建API对应的request
 //        alipayRequest.setReturnUrl("http://domain.com/CallBack/return_url.jsp");
-        alipayRequest.setNotifyUrl("http://aixm99.natappfree.cc/orders/paynotify");//在公共参数中设置回跳和通知地址
+        alipayRequest.setNotifyUrl("http://aixm99.natappfree.cc/orders/receivenotify");//在公共参数中设置回跳和通知地址
         alipayRequest.setBizContent("{" +
                 "    \"out_trade_no\":\"" + payRecord.getPayNo() + "\"," +
                 "    \"total_amount\":" + payRecord.getTotalPrice() + "," +
@@ -95,8 +96,9 @@ public class OrderController {
         return orderService.queryPayResult(payNo);
     }
 
-    @PostMapping("/paynotify")
-    public void paynotify(HttpServletRequest request, HttpServletResponse response) throws IOException, AlipayApiException {
+    @ApiOperation("接收支付结果通知")
+    @PostMapping("/receivenotify")
+    public void receivenotify(HttpServletRequest request, HttpServletResponse response) throws IOException, AlipayApiException {
         Map<String, String> params = new HashMap<>();
         Map requestParams = request.getParameterMap();
         for (Iterator iter = requestParams.keySet().iterator(); iter.hasNext(); ) {
@@ -120,8 +122,10 @@ public class OrderController {
             String trade_status = new String(request.getParameter("trade_status").getBytes("ISO-8859-1"), "UTF-8");
             //付款金额
             String total_amount = new String(request.getParameter("total_amount").getBytes("ISO-8859-1"), "UTF-8");
-            if (trade_status.equals("TRADE_FINISHED")) {//交易结束
-
+            if (trade_status.equals("TRADE_FINISHED")) {
+                //交易结束
+                System.out.println("交易已结束，请重试");
+                log.debug("交易结束");
             } else if (trade_status.equals("TRADE_SUCCESS")) {
                 // 交易成功，保存订单信息
                 PayStatusDto payStatusDto = new PayStatusDto();

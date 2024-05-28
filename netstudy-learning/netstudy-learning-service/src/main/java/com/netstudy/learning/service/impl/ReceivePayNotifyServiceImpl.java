@@ -11,12 +11,18 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+/**
+ * @author Dico
+ * @version 1.0
+ * @description 消费端接受处理支付成功消息，消息队列，添加课程
+ * @date 2024/5/28 14:53
+ */
 @Slf4j
 @Service
 public class ReceivePayNotifyServiceImpl {
+
     @Autowired
     MyCourseTablesService tablesService;
-
 
     @RabbitListener(queues = PayNotifyConfig.PAYNOTIFY_QUEUE)
     public void receive(Message message) {
