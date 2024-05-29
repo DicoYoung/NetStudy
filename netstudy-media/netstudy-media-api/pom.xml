@@ -94,6 +94,7 @@
 
     </dependencies>
 
+    <!--在需要打可执行包的工程中配置spring-boot-maven-plugin插件，否则报 “jar中没有主清单属性-->
     <build>
         <finalName>${project.artifactId}-${project.version}</finalName>
         <plugins>
