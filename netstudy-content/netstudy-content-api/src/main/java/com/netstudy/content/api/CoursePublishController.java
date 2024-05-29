@@ -83,26 +83,26 @@ public class CoursePublishController {
     @ResponseBody
     @GetMapping("/course/whole/{courseId}")
     public CoursePreviewDto getCoursePublish(@PathVariable("courseId") Long courseId) {
-        //封装数据
-        CoursePreviewDto coursePreviewDto = new CoursePreviewDto();
-
-        //查询课程发布表
-//        CoursePublish coursePublish = coursePublishService.getCoursePublish(courseId);
-        //先从缓存查询，缓存中有直接返回，没有再查询数据库
-        CoursePublish coursePublish = coursePublishService.getCoursePublishCache(courseId);
-        if (coursePublish == null) {
-            return coursePreviewDto;
-        }
-        //开始向coursePreviewDto填充数据
-        CourseBaseInfoDto courseBaseInfoDto = new CourseBaseInfoDto();
-        BeanUtils.copyProperties(coursePublish, courseBaseInfoDto);
-        //课程计划信息
-        String teachplanJson = coursePublish.getTeachplan();
-        //转成List<TeachplanDto>
-        List<TeachplanDto> teachplanDtos = JSON.parseArray(teachplanJson, TeachplanDto.class);
-        coursePreviewDto.setCourseBase(courseBaseInfoDto);
-        coursePreviewDto.setTeachplans(teachplanDtos);
-        return coursePreviewDto;
+        return coursePublishService.getCoursePreviewInfoWithPublish(courseId);
+//        //封装数据
+//        CoursePreviewDto coursePreviewDto = new CoursePreviewDto();
+//        //查询课程发布表
+////        CoursePublish coursePublish = coursePublishService.getCoursePublish(courseId);
+//        //先从缓存查询，缓存中有直接返回，没有再查询数据库
+//        CoursePublish coursePublish = coursePublishService.getCoursePublishCache(courseId);
+//        if (coursePublish == null) {
+//            return coursePreviewDto;
+//        }
+//        //开始向coursePreviewDto填充数据
+//        CourseBaseInfoDto courseBaseInfoDto = new CourseBaseInfoDto();
+//        BeanUtils.copyProperties(coursePublish, courseBaseInfoDto);
+//        //课程计划信息
+//        String teachplanJson = coursePublish.getTeachplan();
+//        //转成List<TeachplanDto>
+//        List<TeachplanDto> teachplanDtos = JSON.parseArray(teachplanJson, TeachplanDto.class);
+//        coursePreviewDto.setCourseBase(courseBaseInfoDto);
+//        coursePreviewDto.setTeachplans(teachplanDtos);
+//        return coursePreviewDto;
     }
 
 }

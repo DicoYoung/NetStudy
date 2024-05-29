@@ -41,6 +41,8 @@ import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Dico
@@ -78,7 +80,7 @@ public class CoursePublishServiceImpl implements CoursePublishService {
 
     @Autowired
     private SearchServiceClient searchServiceClient;
-//
+
 //    @Autowired
 //    RedisTemplate redisTemplate;
 //
@@ -86,17 +88,53 @@ public class CoursePublishServiceImpl implements CoursePublishService {
 //    RedissonClient redissonClient;
 
 
+    /**
+     * 主要面向全查询，open接口的,不需要查询发布表的
+     *
+     * @param courseId 课程id
+     * @return CoursePreviewDto
+     */
     @Override
     public CoursePreviewDto getCoursePreviewInfo(Long courseId) {
-        //课程基本信息、营销信息
+        // 课程基本信息、营销信息
         CourseBaseInfoDto courseBaseInfo = courseBaseInfoService.getCourseBaseInfo(courseId);
-        //课程计划信息
+        // 课程计划信息
         List<TeachplanDto> teachplanTree = teachplanService.findTeachplanTree(courseId);
-
+        // 封装返回
         CoursePreviewDto coursePreviewDto = new CoursePreviewDto();
         coursePreviewDto.setCourseBase(courseBaseInfo);
         coursePreviewDto.setTeachplans(teachplanTree);
         return coursePreviewDto;
+    }
+
+    /**
+     * 面向需要查询发布表的
+     *
+     * @param courseId 课程id
+     * @return CoursePreviewDto
+     */
+    @Override
+    public CoursePreviewDto getCoursePreviewInfoWithPublish(Long courseId) {
+        //封装数据
+        CoursePreviewDto coursePreviewDto = new CoursePreviewDto();
+        //查询课程发布表
+//        CoursePublish coursePublish = coursePublishService.getCoursePublish(courseId);
+        //先从缓存查询，缓存中有直接返回，没有再查询数据库
+        CoursePublish coursePublish = getCoursePublishCache(courseId);
+        if (coursePublish == null) {
+            return coursePreviewDto;
+        }
+        //开始向coursePreviewDto填充数据
+        CourseBaseInfoDto courseBaseInfoDto = new CourseBaseInfoDto();
+        BeanUtils.copyProperties(coursePublish, courseBaseInfoDto);
+        //课程计划信息
+        String teachPlanJson = coursePublish.getTeachplan();
+        //转成List<TeachplanDto>
+        List<TeachplanDto> teachPlanDtos = JSON.parseArray(teachPlanJson, TeachplanDto.class);
+        coursePreviewDto.setCourseBase(courseBaseInfoDto);
+        coursePreviewDto.setTeachplans(teachPlanDtos);
+        return coursePreviewDto;
+//        return null;
     }
 
     @Transactional
@@ -182,7 +220,48 @@ public class CoursePublishServiceImpl implements CoursePublishService {
 
     @Override
     public CoursePublish getCoursePublishCache(Long courseId) {
-
+//        // 1. 先从缓存中查询
+//        String courseCacheJson = redisTemplate.opsForValue().get("course:" + courseId);
+//        // 2. 如果缓存里有，直接返回
+//        if (StringUtils.isNotEmpty(courseCacheJson)) {
+//            log.debug("从缓存中查询");
+//            if ("null".equals(courseCacheJson)) {
+//                return null;
+//            }
+//            CoursePublish coursePublish = JSON.parseObject(courseCacheJson, CoursePublish.class);
+//            return coursePublish;
+//        } else {
+//            RLock lock = redissonClient.getLock("courseQueryLock" + courseId);
+//            lock.lock();
+//            try {
+//                // 1. 先从缓存中查询
+//                courseCacheJson = redisTemplate.opsForValue().get("course:" + courseId);
+//                // 2. 如果缓存里有，直接返回
+//                if (StringUtils.isNotEmpty(courseCacheJson)) {
+//                    log.debug("从缓存中查询");
+//                    if ("null".equals(courseCacheJson)) {
+//                        return null;
+//                    }
+//                    CoursePublish coursePublish = JSON.parseObject(courseCacheJson, CoursePublish.class);
+//                    return coursePublish;
+//                }
+//                log.debug("缓存中没有，查询数据库");
+//                System.out.println("缓存中没有，查询数据库");
+//                // 3. 如果缓存里没有，查询数据库
+//                CoursePublish coursePublish = coursePublishMapper.selectById(courseId);
+//                if (coursePublish == null) {
+//                    redisTemplate.opsForValue().set("course:" + courseId, JSON.toJSONString(null), 30 + new Random().nextInt(100), TimeUnit.SECONDS);
+//                    return null;
+//                }
+//                String jsonString = JSON.toJSONString(coursePublish);
+//                // 3.1 将查询结果缓存
+//                redisTemplate.opsForValue().set("course:" + courseId, jsonString, 300 + new Random().nextInt(100), TimeUnit.SECONDS);
+//                // 3.1 返回查询结果
+//                return coursePublish;
+//            } finally {
+//                lock.unlock();
+//            }
+//        }
         return null;
     }
 

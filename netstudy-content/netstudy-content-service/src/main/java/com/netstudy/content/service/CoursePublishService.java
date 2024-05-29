@@ -46,6 +46,15 @@ public interface CoursePublishService {
     CoursePublish getCoursePublish(Long courseId);
 
     /**
+     * @param courseId 课程id
+     * @return com.netstudy.content.model.dto.CoursePreviewDto
+     * @description 获取课程预览信息，不通过open，而是需要查询发布表里的信息
+     * @author Dico
+     * @date 2024/5/28 23:39
+     */
+    CoursePreviewDto getCoursePreviewInfoWithPublish(Long courseId);
+
+    /**
      * 从缓存中查询课程发布信息
      *
      * @param courseId 课程ID

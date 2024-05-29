@@ -43,5 +43,13 @@ public interface MyCourseTablesService {
      */
     boolean saveChooseCourseStatus(String chooseCourseId);
 
+    /**
+     * @param params 课程表参数
+     * @return PageResult
+     * @description 我的课程表
+     * @author Dico
+     * @date 2024/5/28 23:24
+     */
+
     PageResult<XcCourseTables> myCourseTables(MyCourseTableParams params);
 }
