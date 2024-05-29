@@ -9,6 +9,21 @@
     <description>netstudy-parent</description>
     <packaging>pom</packaging>
 
+    <modules>
+        <module>../netstudy-base</module>
+        <module>../netstudy-checkcode</module>
+        <module>../netstudy-gateway</module>
+        <module>../netstudy-auth</module>
+        <module>../netstudy-content</module>
+        <module>../netstudy-learning</module>
+        <module>../netstudy-media</module>
+        <module>../netstudy-orders</module>
+        <module>../netstudy-message-sdk</module>
+        <module>../netstudy-search</module>
+        <module>../netstudy-system</module>
+    </modules>
+
+
     <properties>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
