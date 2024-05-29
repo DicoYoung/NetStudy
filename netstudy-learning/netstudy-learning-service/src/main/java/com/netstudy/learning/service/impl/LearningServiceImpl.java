@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 public class LearningServiceImpl implements LearningService {
+
     @Autowired
     MyCourseTablesService courseTablesService;
 
