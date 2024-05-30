@@ -28,8 +28,12 @@ import freemarker.template.Template;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
@@ -81,11 +85,12 @@ public class CoursePublishServiceImpl implements CoursePublishService {
     @Autowired
     private SearchServiceClient searchServiceClient;
 
-//    @Autowired
-//    RedisTemplate redisTemplate;
-//
-//    @Autowired
-//    RedissonClient redissonClient;
+    @Autowired
+    StringRedisTemplate redisTemplate;
+
+    //布隆过滤器
+    @Autowired
+    RedissonClient redissonClient;
 
 
     /**
@@ -118,7 +123,7 @@ public class CoursePublishServiceImpl implements CoursePublishService {
         //封装数据
         CoursePreviewDto coursePreviewDto = new CoursePreviewDto();
         //查询课程发布表
-//        CoursePublish coursePublish = coursePublishService.getCoursePublish(courseId);
+//        CoursePublish coursePublish = getCoursePublish(courseId);
         //先从缓存查询，缓存中有直接返回，没有再查询数据库
         CoursePublish coursePublish = getCoursePublishCache(courseId);
         if (coursePublish == null) {
@@ -220,49 +225,71 @@ public class CoursePublishServiceImpl implements CoursePublishService {
 
     @Override
     public CoursePublish getCoursePublishCache(Long courseId) {
-//        // 1. 先从缓存中查询
-//        String courseCacheJson = redisTemplate.opsForValue().get("course:" + courseId);
-//        // 2. 如果缓存里有，直接返回
-//        if (StringUtils.isNotEmpty(courseCacheJson)) {
-//            log.debug("从缓存中查询");
-//            if ("null".equals(courseCacheJson)) {
-//                return null;
-//            }
-//            CoursePublish coursePublish = JSON.parseObject(courseCacheJson, CoursePublish.class);
-//            return coursePublish;
-//        } else {
-//            RLock lock = redissonClient.getLock("courseQueryLock" + courseId);
-//            lock.lock();
-//            try {
-//                // 1. 先从缓存中查询
-//                courseCacheJson = redisTemplate.opsForValue().get("course:" + courseId);
-//                // 2. 如果缓存里有，直接返回
-//                if (StringUtils.isNotEmpty(courseCacheJson)) {
-//                    log.debug("从缓存中查询");
-//                    if ("null".equals(courseCacheJson)) {
-//                        return null;
-//                    }
-//                    CoursePublish coursePublish = JSON.parseObject(courseCacheJson, CoursePublish.class);
-//                    return coursePublish;
-//                }
-//                log.debug("缓存中没有，查询数据库");
-//                System.out.println("缓存中没有，查询数据库");
-//                // 3. 如果缓存里没有，查询数据库
-//                CoursePublish coursePublish = coursePublishMapper.selectById(courseId);
-//                if (coursePublish == null) {
-//                    redisTemplate.opsForValue().set("course:" + courseId, JSON.toJSONString(null), 30 + new Random().nextInt(100), TimeUnit.SECONDS);
-//                    return null;
-//                }
-//                String jsonString = JSON.toJSONString(coursePublish);
-//                // 3.1 将查询结果缓存
-//                redisTemplate.opsForValue().set("course:" + courseId, jsonString, 300 + new Random().nextInt(100), TimeUnit.SECONDS);
-//                // 3.1 返回查询结果
-//                return coursePublish;
-//            } finally {
-//                lock.unlock();
-//            }
-//        }
-        return null;
+        // 【缓存穿透】：高并发查询数据库没有的数据，缓存中没有，穿透了缓存，缓存不起作用了
+        // 进行数据类型校验，解决缓存穿透的方法1
+        // 布隆过滤器，解决缓存穿透的方法2
+        // 【缓存击穿】：高并发访问某一个数据，且此时在缓存中它过期了，就会大量访问数据库
+        // 解决方法：
+        // 1.热点数据不过期，后台可以以提前存到缓存里，过期时间不过期
+        // 2.同步锁，太慢，只需要锁住查询数据库，查询缓存不需要锁住,用锁尽量缩小锁的范围
+        //            并且同步锁只能控制当前JVM里的锁，微服务多个实例里互相无法控制，不符合要求
+        // 这时候需要把【锁单独部署起来】，实现分布式锁，让【多个虚拟机去争抢同一个锁】
+        // 主要方法为Redis的SETNX和redisson
+        // 1.SETNX：redisTemplate.opsForValue().setIfAbsent();
+        //   SETNX问题在于拿到锁在执行业务时，还没执行完，锁就过期了，此时另外的线程就会又请求新锁，再次访问数据库
+        //   并且会出现线程1把线程2的锁解开了的情况
+
+        // 1. 先从缓存中查询
+        String courseCacheJson = redisTemplate.opsForValue().get("course:" + courseId);
+        // 2. 如果缓存里有，直接返回
+        if (StringUtils.isNotEmpty(courseCacheJson)) {
+            log.debug("从缓存中查询");
+            if ("null".equals(courseCacheJson)) {
+                return null;
+            }
+            return JSON.parseObject(courseCacheJson, CoursePublish.class);
+        } else {
+            // 2.redisson分布式锁
+            RLock lock = redissonClient.getLock("courseQueryLock" + courseId);
+            lock.lock();
+            try {
+                // 再次查询一下缓存
+                // 1. 先从缓存中查询
+                courseCacheJson = redisTemplate.opsForValue().get("course:" + courseId);
+                // 2. 如果缓存里有，直接返回
+                if (StringUtils.isNotEmpty(courseCacheJson)) {
+                    log.debug("从缓存中查询");
+                    if ("null".equals(courseCacheJson)) {
+                        return null;
+                    }
+                    return JSON.parseObject(courseCacheJson, CoursePublish.class);
+                }
+                log.debug("缓存中没有，查询数据库");
+                System.out.println("缓存中没有，查询数据库");
+                // 3. 如果缓存里没有，查询数据库
+                CoursePublish coursePublish = coursePublishMapper.selectById(courseId);
+                if (coursePublish == null) {
+                    // 解决缓存穿透的方法3
+                    // 数据库没有这个数据，依然缓存，但是缓存的是一个空
+                    // 这样当再次请求这个空查询时在缓存里直接给它返回null，而不再需要查询数据库了
+                    // 并且需要设置过期时间，为30s，此外还加一个随机数，解决缓存雪崩
+                    // 【缓存雪崩】：缓存中的key同时设置了相同的时间期限，就会在同一时间大面积过期，从而导致访问数据库
+                    // 上诉对一类信息加随机事件是缓存雪崩的解决方法之1
+                    // 2.同步锁
+                    // 3.缓存预热
+                    redisTemplate.opsForValue().set("course:" + courseId, JSON.toJSONString(null), 30 + new Random().nextInt(100), TimeUnit.SECONDS);
+                    return null;
+                }
+                String jsonString = JSON.toJSONString(coursePublish);
+                // 3.1 将查询结果缓存
+                redisTemplate.opsForValue().set("course:" + courseId, jsonString, 300 + new Random().nextInt(100), TimeUnit.SECONDS);
+                // 3.1 返回查询结果
+                return coursePublish;
+            } finally {
+                lock.unlock();
+            }
+        }
+//        return null;
     }
 
     @Override
